@@ -1,0 +1,19 @@
+{
+  "series": "Manga_Title",
+  "translated": "around 2010",
+  "volumes_root": "C:\\path\\to\\volumes",
+  "volume_dir": "Manga_Title_{vol}_*",
+  "cleaned_dir": "* Cleaned",
+  "raw_dir": "* Digital Raw",
+  "file_prefix": "Manga_Title_{vol}_",
+  "model": "claude-opus-5-5",
+  "effort": "medium",
+  "price_per_mtok": [4.0, 20.0],
+  "prompt_notes": [
+    "Anything the checker should know about this series: tone, house style, terms not to flag."
+  ],
+  "mixed_case_fonts": ["SomeMixedCaseFont"],
+  "crossbar_fonts": ["FontWhereCapitalIIsTheCrossbarI"],
+  "pipe_fonts": ["FontWherePipeIsTheCrossbarI"],
+  "raw_map": {"Manga_Title_v01_ch002_025": "Manga_Title_v01_ch001_027"}
+}

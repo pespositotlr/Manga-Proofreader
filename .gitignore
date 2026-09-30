@@ -1,0 +1,18 @@
+# Project-specific settings (series name, paths, prompt notes) and all working data
+config.json
+config.*.json
+!config.example.json
+local/
+CLAUDE.md
+
+# Never commit pages or exports
+*.psd
+*.jpg
+*.png
+*.csv
+*.tsv
+
+__pycache__/
+*.pyc
+.venv/
+venv/
