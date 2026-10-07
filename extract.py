@@ -28,19 +28,20 @@ PAD = 0.12  # padding around the English box, as a fraction of its size
 
 def raw_image(raw_folder, name):
     """Raw page for a PSD base name (spreads are joined), or None."""
-    mapped = CFG.get("raw_map", {}).get(name)
-    if mapped:
-        return Image.open(os.path.join(raw_folder, mapped + ".jpg")).convert("RGB")
+    name = CFG.get("raw_map", {}).get(name, name)  # the mapped name may be a spread too ("..._004-005")
     base = os.path.join(raw_folder, name + ".jpg")
     if os.path.exists(base):
         return Image.open(base).convert("RGB")
-    m = re.match(r"(.*_)(ch\d+|extra)_(\d+)(?:-(\d+))?$", name)
+    m = re.match(r"(.*_)(ch\d+|extra)_(\d+)(?:[-_](\d+))?$", name)
     if not m:
         return None
     pre, _, a, b = m.groups()
     imgs = []
     for p in [a] + ([b] if b else []):
         hits = glob.glob(os.path.join(raw_folder, f"{pre}*_{p}.jpg"))
+        if not hits:  # otherwise any raw whose name ends in the page's last 3 digits ("076.jpg", "page_076.png")
+            hits = [h for h in glob.glob(os.path.join(raw_folder, "*"))
+                    if re.search(rf"(?<!\d){p[-3:]}\.(jpe?g|png)$", os.path.basename(h), re.I)]
         if len(hits) != 1:
             return None
         imgs.append(Image.open(hits[0]).convert("RGB"))
@@ -73,7 +74,7 @@ def main():
         name = os.path.splitext(os.path.basename(psd_path))[0]
         if "_color" in name or "credits" in name or re.search(r"_000[a-z]$", name):
             continue
-        m = re.search(r"_(ch(\d+)|extra)_(\d+(?:-\d+)?)$", name)
+        m = re.search(r"_(ch(\d+)|extra)_(\d+(?:[-_]\d+)?)$", name)
         if not m:
             continue
         chap = m.group(2) or "extra"

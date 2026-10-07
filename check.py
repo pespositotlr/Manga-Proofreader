@@ -19,7 +19,7 @@ import time
 
 import anthropic
 
-from mp_config import CFG, LOCAL, local
+from mp_config import CFG, LOCAL, api_client, local
 
 MODEL = CFG.get("model", "claude-opus-5-5")
 EFFORT = CFG.get("effort", "medium")
@@ -119,7 +119,7 @@ def params(cid):
 
 def run(ids):
     """Normal (non-batch) requests: results in minutes, at full price."""
-    client = anthropic.Anthropic()
+    client = api_client()
     total = 0.0
     for cid in ids:
         with client.messages.stream(**params(cid)) as stream:
@@ -129,7 +129,7 @@ def run(ids):
 
 
 def submit(ids):
-    client = anthropic.Anthropic()
+    client = api_client()
     batch = client.messages.batches.create(requests=[{"custom_id": cid, "params": params(cid)} for cid in ids])
     with open(local("batches.txt"), "a", encoding="utf-8") as f:
         f.write(f"{time.strftime('%Y-%m-%d %H:%M')}\t{batch.id}\t{' '.join(ids)}\n")
@@ -137,7 +137,7 @@ def submit(ids):
 
 
 def fetch(batch_id):
-    client = anthropic.Anthropic()
+    client = api_client()
     batch = client.messages.batches.retrieve(batch_id)
     if batch.processing_status != "ended":
         print("still", batch.processing_status, batch.request_counts)

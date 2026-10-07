@@ -43,8 +43,41 @@ def fonts(layer):
 
 def uniform_style(layer):
     """True if every run (longer than one character) has the same character style. Setting a
-    layer's text from a script flattens mixed styles, so those layers are edited by hand."""
+    layer's text from a script flattens mixed styles, so apply_edits.jsx edits those layers
+    character by character instead (see style_problem)."""
     runs = layer.engine_dict["StyleRun"]["RunArray"]
     lengths = layer.engine_dict["StyleRun"]["RunLengthArray"]
     sheets = [str(r["StyleSheet"]["StyleSheetData"]) for r, n in zip(runs, lengths) if n > 1]
     return len(set(sheets)) <= 1
+
+
+def style_problem(layer):
+    """Why a mixed-style layer can't be edited character by character (apply_edits.jsx keeps its
+    styles), or "" if it can."""
+    try:
+        if layer.engine_dict["Rendered"]["Shapes"].get("WritingDirection", 0) != 0:
+            return "vertical text"
+    except Exception:
+        return "no text engine data"
+    return ""
+
+
+def paragraph_defaults(layer):
+    """Paragraph settings Photoshop's Action Manager leaves out when they equal the document's
+    default paragraph style, and then resets to its own defaults when the text is written back:
+    {Action Manager key: value} for the ones that are off in every paragraph of the layer."""
+    try:
+        sheets = layer.resource_dict["ParagraphSheetSet"]
+        out = {}
+        for key, am, off in (("EveryLineComposer", "textEveryLineComposer", False), ("Burasagari", "burasagari", "burasagariNone")):
+            values = set()
+            for run in layer.engine_dict["ParagraphRun"]["RunArray"]:
+                sheet = run["ParagraphSheet"]
+                props = sheet.get("Properties", {})
+                default = sheets[int(sheet.get("DefaultStyleSheet", 0))]["Properties"]
+                values.add(bool(props[key] if key in props else default.get(key, True)))
+            if values == {False}:
+                out[am] = off
+        return out
+    except Exception:
+        return {}
